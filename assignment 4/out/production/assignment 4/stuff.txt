@@ -1,0 +1,207 @@
+    @Override
+    public void put(BinaryNode r, Pixel data) throws DuplicatedKeyException{ //should work, but doesn't pass sim check
+
+        BinaryNode left = new BinaryNode();
+        BinaryNode right = new BinaryNode();
+
+        if(r.isLeaf()){
+            r.setParent(null);
+            r.setData(data);
+            left.setParent(r);
+            right.setParent(r);
+            r.setLeft(left);
+            r.setRight(right);
+        }
+
+        else{
+            while (!r.isLeaf()){
+
+                // If a node with the same key is found then throw a duplicated key exception
+                if (r.getData().getLocation().compareTo(data.getLocation()) == 0){
+                    throw new DuplicatedKeyException();
+                }
+                else if (r.getData().getLocation().compareTo(data.getLocation()) ==-1){
+                    r = r.getRight();
+                }
+                else{
+                    r = r.getLeft();
+                }
+            }
+
+            // Put the record into the tree and set both its children to null nodes
+            r.setParent(r.getParent());
+            r.setData(data);
+            left.setParent(r);
+            right.setParent(r);
+            r.setLeft(left);
+            r.setRight(right);
+        }
+    }
+
+    @Override
+    public void remove(BinaryNode r, Location key) throws InexistentKeyException{ //should work, but doesn't pass sim check
+        BinaryNode location = root;
+
+        if(!location.isLeaf()){
+
+            while (!location.isLeaf()) {
+                int locationnumbercompare = location.getData().getLocation().compareTo(key);
+                if (locationnumbercompare==0) {
+                    r = location;
+                    break;
+                }
+                else if (locationnumbercompare <0) {
+                    location = location.getRight();
+                }
+                else{
+                    location = location.getLeft();
+                }
+            }
+        }
+        r = location;
+
+
+        //r = getNode(key);
+
+        // If the node is a leaf throw an exception
+        if (r.isLeaf()){
+            throw new InexistentKeyException();
+        }
+
+        else{
+
+            // If one of the nodes children is a leaf
+            if (r.getLeft().isLeaf() || r.getRight().isLeaf()){
+
+                // If the left child is a leaf
+                if(r.getLeft().isLeaf()){
+                    BinaryNode right = r.getRight();
+                    BinaryNode parent = r.getParent();
+
+                    // If this node is root, the non-leaf child is made the new root
+                    if (parent == null){
+                        this.root = right;
+                        right.setParent(null);
+                    }
+
+                    // Or the parent points to its non-leaf child
+                    else{
+                        if(parent.getRight().equals(r)){
+                            parent.setRight(right);
+                            right.setParent(parent);
+                        }
+                        else{
+                            parent.setLeft(right);
+                            right.setParent(parent);
+                        }
+                    }
+                }
+
+                // If the right child is a leaf
+                else{
+                    BinaryNode left = r.getLeft();
+                    BinaryNode parent = r.getParent();
+
+                    // If this node is root, the non-leaf child is made the new root
+                    if (parent == null){
+                        this.root = left ;
+                        left.setParent(null);
+                    }
+                    else{
+
+                        // Or the parent points to its non-leaf child
+                        if(parent.getRight().equals(r)){
+                            parent.setRight(left);
+                            left.setParent(parent);
+                        }
+                        else{
+                            parent.setLeft(left);
+                            left.setParent(parent);
+                        }
+                    }
+                }
+            }
+
+            else{
+
+                // If the node is internal find the smallest of its right-subtree and replace it
+                BinaryNode p = r.getRight();
+                while (!p.isLeaf()){
+                    p = p.getLeft();
+                }
+                BinaryNode small = p.getParent();
+
+                //The data is replaced with the smallest node of the subtree
+                r.setData(small.getData());
+                BinaryNode smallparent = small.getParent();
+
+                //Parent points to smallest right
+                if(smallparent.getLeft().equals(small)){
+                    smallparent.setLeft(small.getRight());
+                }
+                else{
+                    smallparent.setRight(small.getRight());
+                }
+                small.getRight().setParent(smallparent);
+            }
+
+        }
+
+    }
+
+    @Override
+    public Pixel successor(BinaryNode r, Location key){
+        if (r.isLeaf()){
+            return null;
+        }
+        else {
+
+
+            BinaryNode location = root;
+            BinaryNode p = null;
+
+            if(!location.isLeaf()){
+                while (!location.isLeaf()) {
+                    int locationnumbercompare = location.getData().getLocation().compareTo(key);
+                    if (locationnumbercompare==0) {
+                        p = location;
+                        break;
+                    }
+                    else if (locationnumbercompare ==1) {
+                        location = location.getRight();
+                    }
+                    else{
+                        location = location.getLeft();
+                    }
+                }
+            }
+            else{
+                p = location;
+            }
+
+            if (!p.isLeaf() && !p.getRight().isLeaf()) {
+                p = p.getRight();
+                while (!p.isLeaf()) {
+                    p = p.getLeft();
+                }
+
+                return p.getParent().getData();
+                // Go through its parents
+            } else {
+                BinaryNode n = p.getParent();
+                // Look at the closet parent that the right child is
+                while (n != null && n.getRight() == p) {
+                    p = n;
+                    n = n.getParent();
+                }
+
+                if (n != null){
+                    return n.getData();
+                }
+                else{
+                    return null;
+                }
+            }
+        }
+
+    }
