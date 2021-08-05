@@ -1,0 +1,40 @@
+        Node startnode = graph.getNode(start);
+        startnode.setMark(true);
+        path.push(startnode);
+
+        Iterator<Edge> edgeiterator = graph.incidentEdges(startnode);
+
+        if(start ==destination)
+            return path.iterator();
+
+        while(edgeiterator.hasNext() == true) {
+            Edge edge = edgeiterator.next();
+            int budget = initialMoney;
+            Node nextnode = edge.secondEndpoint();
+
+            if(nextnode.getName() == startnode.getName())
+                nextnode = edge.firstEndpoint();
+
+            int roadtype = edge.getType();
+            Iterator p = null;
+            if (roadtype ==-1){
+                budget = budget+rewardroadnum;
+                if(budget-tollroadnum>=0&&nextnode.getMark()==false)
+                    p = findPath(nextnode.getName(), destination, budget);
+            }
+
+            else if (roadtype == 1){
+                budget = budget - tollroadnum;
+                if(budget-tollroadnum>=0 &&nextnode.getMark()==false)
+                    p = findPath(nextnode.getName(), destination, budget);
+            }
+            else{
+                if(nextnode.getMark()==false)
+                    p= findPath(nextnode.getName(), destination, budget);
+            }
+            if(p != null)
+                return p;
+        }
+        path.pop();
+        startnode.setMark(false);
+        return null;
